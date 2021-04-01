@@ -6,7 +6,8 @@ import {faTimes, faImage, faPlus, faSave, faTrashAlt} from '@fortawesome/free-so
 import Cropper from "react-cropper";
 import ReactQuill from "react-quill";
 import {useHistory} from "react-router-dom";
-import {getFrontBlocksApi, getBlockApi} from './api/frontAPI';
+import {getBlockApi, createFrontBlocksApi, updateFrontBlocksApi} from './api/frontAPI';
+import {BlockItem} from "./BlockItem";
 
 export function Editor(props) {
     const history = useHistory();
@@ -139,73 +140,28 @@ export function Editor(props) {
     }
 
 
-    function getData(id) {
-
-        /*fetch("http://localhost:8000/api/front_editor/"+id)
-            .then(res => res.json())
-            .then(
-                (result) => {
-                    if (result.success) {
-                        setBlocks(result.data);
-                    }
-                },
-                (error) => {
-
-                }
-            );*/
-    }
-
     function handleSave() {
-        //edit
-        if (props.editId !== undefined) {
-            fetch("http://localhost:8000/api/front_editor/" + props.editId, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    params: blocks
-                })
-            })
-                .then(res => res.json())
-                .then(
-                    (result) => {
-                        alert('Сохранено');
-                        if (result.success) {
-                            //  setBlocks(result.data);
-                        }
-                    },
-                    (error) => {
-
+        if (props.editId === undefined) {
+            createFrontBlocksApi({params : blocks})
+                .then((result) => {
+                    alert('Сохранено');
+                    if (result.success) {
+                        history.push('/front-edit/edit/' + result.data.id);
+                        //  setBlocks(result.data);
                     }
-                );
+                }).catch((error)=>{
+
+            });
         } else {
-            //create
-            fetch("http://localhost:8000/api/front_editor/", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                    // 'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: JSON.stringify({
-                    params: blocks
-                })
-            })
-                .then(res => res.json())
+            updateFrontBlocksApi(props.editId, {params : blocks})
                 .then(
                     (result) => {
-                        alert('Сохранено');
                         if (result.success) {
-                            history.push('/front-edit/edit/' + result.data.id);
+                            alert('Сохранено');
                             //  setBlocks(result.data);
                         }
-                    },
-                    (error) => {
-                    }
-                );
+                    });
         }
-
-
     }
 
 
@@ -214,36 +170,31 @@ export function Editor(props) {
     }
 
 
-    const BlockItem = (item) => {
-        function getStyle() {
-            return {
-                backgroundImage: 'url(' + item.backgroundCropped + ')'
-            }
-        }
 
-        return (<div className='block-item'>
-            <Bar type='slide'>
-                {props.ExtraBlockBtns}
-                <BarBtn onClick={openImageEditor.bind(null, item)}>
-                    <FontAwesomeIcon icon={faImage}/>
-                </BarBtn>
-                <BarBtn onClick={deleteBlock.bind(null, item.id)}>
-                    <FontAwesomeIcon icon={faTrashAlt}/>
-                </BarBtn>
-            </Bar>
-            <div className="block-item__image" style={getStyle()}/>
-            <div className='block-item__text'><ReactQuill theme="bubble"
-                                                          value={item.text}
-                                                          onChange={changeText}
-                                                          modules={{
-                                                              toolbar: [
-                                                                  [{'size': ['small', false, 'large', 'huge']}],
-                                                                  ['bold', 'italic', 'underline'],
-                                                                  [{'color': []}, {'background': []}],
-                                                                  [{'align': []}]
-                                                              ],
-                                                          }}/></div>
-        </div>)
+
+    const renderBlockItem = (item) => {
+        const bar = <Bar className='bar bar_slide'>
+            {props.ExtraBlockBtns}
+            <BarBtn onClick={openImageEditor.bind(null, item)}>
+                <FontAwesomeIcon icon={faImage}/>
+            </BarBtn>
+            <BarBtn onClick={deleteBlock.bind(null, item.id)}>
+                <FontAwesomeIcon icon={faTrashAlt}/>
+            </BarBtn>
+        </Bar>;
+        const text = <ReactQuill theme="bubble"
+                                 value={item.text}
+                                 onChange={changeText}
+                                 modules={{
+                                     toolbar: [
+                                         [{'size': ['small', false, 'large', 'huge']}],
+                                         ['bold', 'italic', 'underline'],
+                                         [{'color': []}, {'background': []}],
+                                         [{'align': []}]
+                                     ],
+                                 }}/>;
+
+        return <BlockItem text={text} bar={bar} background={item.backgroundCropped}/>
     }
 
 
@@ -258,10 +209,10 @@ export function Editor(props) {
             />
             {props.children({
                 blocks,
-                BlockItem,
+                renderBlockItem,
                 changeBlock2
             })}
-            <Bar type='main'>
+            <Bar className='bar bar_main'>
                 <BarBtn name='save'>
                     <FontAwesomeIcon icon={faSave} onClick={handleSave}/>
                 </BarBtn>
@@ -281,7 +232,7 @@ export function Editor(props) {
 
 export function Bar(props) {
     return (
-        <div className={'bar bar_' + props.type}>
+        <div className={props.className}>
             {props.children}
         </div>
     )

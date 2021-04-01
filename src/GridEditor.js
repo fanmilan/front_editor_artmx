@@ -26,7 +26,6 @@ export default function GridEditor(props) {
     }
 
     let {editId} = (useParams());
-    console.log(editId);
     const [gridId, setGridId] = useState(false);
     useEffect(() => {
         (editId) ? setGridId(editId) : setGridId(false);
@@ -42,7 +41,7 @@ export default function GridEditor(props) {
         <Editor title='Создания блока типа Сетка' ExtraBlockBtns={ExtraBlockBtns} editId={editId} defaultBlockItem={defaultBlockItem}>{
             params => <div className='grid-editor-wrap'>
                 <div className='grid-editor'>
-                    <GridStackBlock blocks={params.blocks} BlockItem={params.BlockItem} changeBlock={params.changeBlock2}/>
+                    <GridStackBlock blocks={params.blocks} renderBlockItem={params.renderBlockItem} changeBlock={params.changeBlock2}/>
                 </div>
             </div>
         }
@@ -113,7 +112,7 @@ function GridStackBlock(props) {
                          gs-w={item.grid.w} gs-h={item.grid.h}
                          data-id={item.id} key={item.id} className={'grid-stack-item'}>
                         <div className="grid-stack-item-content">
-                            {props.BlockItem(item)}
+                            {props.renderBlockItem(item)}
                         </div>
                     </div>
                 )

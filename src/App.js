@@ -4,7 +4,7 @@ import HomeEdit from'./HomeEdit';
 import GridEditor from'./GridEditor';
 import SliderEditor from'./SliderEditor';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
-import {faTimes, faImage, faPlus, faSave, faTrashAlt, faArrowDown, faArrowUp} from '@fortawesome/free-solid-svg-icons'
+import {faTimes, faImage, faTrashAlt, faArrowDown, faArrowUp} from '@fortawesome/free-solid-svg-icons'
 import {useRef, useState} from "react";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.bubble.css';

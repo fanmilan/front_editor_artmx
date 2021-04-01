@@ -22,8 +22,6 @@
 }
 
 .list-pages{
-
-
   list-style: none;
   padding:0;
 
@@ -36,6 +34,10 @@
     line-height: 22px;
     position: relative;
     margin:5px 0;
+
+    &_disabled{
+      opacity:0.5;
+    }
   }
 }
 
@@ -66,5 +68,8 @@
     text-decoration: none;
   }
 
-
+  a{
+    color: #1C94C4;
+    text-decoration: none;
+  }
 }

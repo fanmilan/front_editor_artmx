@@ -9,12 +9,14 @@ const headers = {
 
 export const getFrontBlocksApi = () => {
     return axios.get(url)
-                .catch(errorHandle)
-                .then(res => {
-                    console.log(res);
-                    console.log(res.data);
-                })
+                .then(res => res.data);
 }
+
+
+/*
+* id = front for Public Home Page
+*
+* */
 
 export const getBlockApi = (id) => {
     return axios.get(url+id)
@@ -25,6 +27,19 @@ export const createFrontBlocksApi = (data) => {
     return axios.post(url, data)
                 .then(res => res.data);
 }
+
+/*
+*
+* id = front for update Home Page
+*
+* */
+
+export const updateFrontBlocksApi = (id, data) => {
+    return axios.put(url+id, data)
+                .then(res => res.data);
+}
+
+
 
 function errorHandle(error) {
     alert('Произошла ошибка');

@@ -33,7 +33,7 @@ export default function SliderEditor(props) {
                 params => <div className='slider-editor'>
                     <MainBlock
                         slides={params.blocks}
-                        BlockItem={params.BlockItem}
+                        renderBlockItem={params.renderBlockItem}
                     />
                 </div>
             }
@@ -47,7 +47,7 @@ function MainBlock(props) {
     //<Slide key={value.id} item={value} {...props}/>
     function renderSlides() {
         return props.slides.sort((a,b) => (a.sort_id > b.sort_id) ? 1 : ((a.sort_id < b.sort_id) ? -1 : 0)).map(value => {
-            return props.BlockItem(value)
+            return props.renderBlockItem(value)
         });
     }
 

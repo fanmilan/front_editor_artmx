@@ -52,6 +52,20 @@ img{
     }
   }
 
+  &_home-edit{
+    position: absolute;
+    right:0;
+    top:0;
+    height:30px;
+    background:transparent;
+
+    .bar__btn{
+      width:30px;
+      background:transparent;
+      border:0;
+    }
+  }
+
 
 }
 
