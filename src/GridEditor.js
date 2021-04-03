@@ -7,6 +7,7 @@ import 'gridstack/dist/h5/gridstack-dd-native';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faArrowsAlt} from "@fortawesome/free-solid-svg-icons";
 import {useParams} from "react-router-dom";
+import {GridItems} from "./GridItems";
 
 
 export default function GridEditor(props) {
@@ -20,7 +21,6 @@ export default function GridEditor(props) {
         },
         background : false,
         backgroundCropped :  false,
-        sort_id:0,
         text: '<span class="ql-size-huge">{{ТЕКСТ}}</span>',
         aspectRatio : 1
     }
@@ -31,17 +31,13 @@ export default function GridEditor(props) {
         (editId) ? setGridId(editId) : setGridId(false);
     },[editId]);
 
-    const ExtraBlockBtns = <>
-        <BarBtn name='drag'>
-            <FontAwesomeIcon icon={faArrowsAlt}/>
-        </BarBtn>
-    </>;
+
 
     return (
-        <Editor title='Создания блока типа Сетка' ExtraBlockBtns={ExtraBlockBtns} editId={editId} defaultBlockItem={defaultBlockItem}>{
+        <Editor title='Создания блока типа Сетка' editId={editId} defaultBlockItem={defaultBlockItem}>{
             params => <div className='grid-editor-wrap'>
                 <div className='grid-editor'>
-                    <GridStackBlock blocks={params.blocks} renderBlockItem={params.renderBlockItem} changeBlock={params.changeBlock2}/>
+                    <GridStackBlock blocks={params.blocks} renderBlockItem={params.renderBlockItem} changeBlock={params.changeBlock}/>
                 </div>
             </div>
         }
@@ -53,6 +49,12 @@ function GridStackBlock(props) {
 
     const gridRef = useRef();
     const refs = useRef({});
+
+    const ExtraBlockBtns = () => <>
+        <BarBtn name='drag'>
+            <FontAwesomeIcon icon={faArrowsAlt}/>
+        </BarBtn>
+    </>;
 
     if (Object.keys(refs.current).length !== props.blocks.length) {
         props.blocks.forEach(({id}) => {
@@ -104,86 +106,21 @@ function GridStackBlock(props) {
                         } gs-y={item.grid.y}*/
 
     return (
+        <GridItems blocks={props.blocks} renderBlockItem={(item) => props.renderBlockItem(item, ExtraBlockBtns)} refs={refs} />
+
+        /*
         <div className={`grid-stack grid-stack-3`}>
             {props.blocks.map((item, i) => {
                 return (
                     <div ref={refs.current[item.id]}
-
                          gs-w={item.grid.w} gs-h={item.grid.h}
                          data-id={item.id} key={item.id} className={'grid-stack-item'}>
                         <div className="grid-stack-item-content">
-                            {props.renderBlockItem(item)}
+                            {props.renderBlockItem(item, ExtraBlockBtns)}
                         </div>
                     </div>
                 )
             })}
-        </div>
+        </div>*/
     );
 }
-
-
-const Item = ({id}) => <div>I am item: {id}</div>
-
-//
-// Controlled example
-//
-
-const ControlledStack = ({items, addItem}) => {
-    const refs = useRef({})
-    const gridRef = useRef()
-
-    if (Object.keys(refs.current).length !== items.length) {
-        items.forEach(({id}) => {
-            refs.current[id] = refs.current[id] || createRef()
-        })
-    }
-
-    useEffect(() => {
-        gridRef.current =
-            gridRef.current ||
-            GridStack.init(
-                {
-                    float: true,
-                    cellHeight: '333px',
-                    disableDrag: false,
-                    maxRow: 3,
-                },
-                '.controlled'
-            )
-        const grid = gridRef.current
-        grid.batchUpdate()
-        grid.removeAll(false)
-        items.forEach(({id}) => grid.makeWidget(refs.current[id].current))
-        grid.commit()
-    }, [items])
-
-    return (
-        <div>
-            <button onClick={addItem}>Add new widget</button>
-            <div className={`grid-stack controlled grid-stack-3`}>
-                {items.map((item, i) => {
-                    return (
-                        <div ref={refs.current[item.id]} key={item.id} className={'grid-stack-item'}>
-                            <div className="grid-stack-item-content">
-                                <Item {...item} />
-                            </div>
-                        </div>
-                    )
-                })}
-            </div>
-        </div>
-    )
-}
-
-const ControlledExample = () => {
-    const [items, setItems] = useState([{id: 'item-1'}, {id: 'item-2'}])
-
-    return (
-        <ControlledStack
-            items={items}
-            addItem={() => setItems([...items, {id: `item-${items.length + 1}`}])}
-        />
-    )
-}
-
-

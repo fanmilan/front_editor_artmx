@@ -1,0 +1,14 @@
+.page{
+  min-height:100vh;
+  position:relative;
+
+  &__title{
+    max-width:1000px;
+    width:100%;
+    margin:30px auto;
+  }
+}
+
+.editor{
+  margin-bottom: 70px;
+}

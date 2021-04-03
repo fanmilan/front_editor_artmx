@@ -1,3 +1,5 @@
+import './scss/BlockItem.scss';
+
 export function BlockItem({background, bar, text}) {
     function getStyle() {
         return {

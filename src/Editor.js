@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from "react";
 import './scss/Editor.scss';
-import arrayMove from 'array-move';
+
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faTimes, faImage, faPlus, faSave, faTrashAlt} from '@fortawesome/free-solid-svg-icons'
 import Cropper from "react-cropper";
@@ -8,30 +8,35 @@ import ReactQuill from "react-quill";
 import {useHistory} from "react-router-dom";
 import {getBlockApi, createFrontBlocksApi, updateFrontBlocksApi} from './api/frontAPI';
 import {BlockItem} from "./BlockItem";
+import {Page} from "./Page";
+import {trackPromise} from "react-promise-tracker";
 
 export function Editor(props) {
     const history = useHistory();
     const cropperRef = useRef(null);
     const inputFileRef = useRef(null);
     const [blocks, setBlocks] = useState([]);
+    const [blockName, setBlockName] = useState('');
 
     useEffect(() => {
-        console.log(props);
         switch (props.editId) {
             case undefined:
                 setBlocks([props.defaultBlockItem]);
                 // addBlock();
                 break;
             default:
-                getBlockApi(props.editId)
-                    .then(result => {
-                        console.log(result);
-                        if (result.success) {
-                            setBlocks(result.data);
-                        }
-                    }).catch(error => {
+                trackPromise(
+                    getBlockApi(props.editId)
+                        .then(result => {
+                            console.log(result);
+                            if (result.success) {
+                                const data = result.data;
+                                setBlockName(data.name);
+                                setBlocks(data.items);
+                            }
+                        }).catch(error => {
                         console.log(error);
-                    });
+                    }));
                 break;
 
         }
@@ -41,6 +46,7 @@ export function Editor(props) {
 
     const [currentBlock, setCurrentBlock] = useState(false);
     const [imageEditorIsOpen, setOpenImageEditor] = useState(false);
+
 
     function uploadFile(e) {
         e.preventDefault();
@@ -53,7 +59,8 @@ export function Editor(props) {
         if (files.length > 0) {
             const reader = new FileReader();
             reader.onload = () => {
-                changeBlock(currentBlock.id, reader.result, true);
+                const img = reader.result;
+                changeBlock(currentBlock.id, {background: img, backgroundCropped: img}, true);
             };
             reader.readAsDataURL(files[0]);
         }
@@ -66,51 +73,35 @@ export function Editor(props) {
     function addBlock() {
         const newBlock = {
             ...props.defaultBlockItem,
-            id: getNextParamOfSlide('id'),
-            sort_id: getNextParamOfSlide('sort_id')
+            id: getNextParamOfSlide('id')
         }
         setBlocks([...blocks, newBlock]);
     }
 
-    function changeBlock(slide_id, newBackground, upload = false) {
-        let newBlocks = [...blocks];
-        const slideIndex = newBlocks.findIndex(v => {
-            return parseInt(v.id) === parseInt(slide_id)
-        });
-
-
-        newBlocks[slideIndex] = (upload) ? {
-            ...newBlocks[slideIndex],
-            backgroundCropped: newBackground,
-            background: newBackground
-        } : {
-            ...newBlocks[slideIndex],
-            backgroundCropped: newBackground
-        };
-
-        setBlocks(newBlocks);
-        if (upload) {
-            setCurrentBlock(newBlocks[slideIndex]);
-            setOpenImageEditor(true);
-        }
-    }
-
-    function changeBlock2(block_id, newParams) {
+    function changeBlock(block_id, newParams, upload = false) {
         let newBlocks = [...blocks];
         const blockIndex = newBlocks.findIndex(v => parseInt(v.id) === parseInt(block_id));
 
-
-        //console.log(...newParams);
 
         newBlocks[blockIndex] = {
             ...newBlocks[blockIndex],
             ...newParams
         };
+
         setBlocks(newBlocks);
+
+
         if (newParams.aspectRatio) {
+            /* set AspectRatio on Opened Cropper */
             if (cropperRef.current && imageEditorIsOpen) {
                 cropperRef.current.cropper.setAspectRatio(newParams.aspectRatio)
             }
+        }
+
+        if (upload) {
+            /* Open Cropper after upload */
+            setCurrentBlock(newBlocks[blockIndex]);
+            setOpenImageEditor(true);
         }
         console.log(newBlocks);
     }
@@ -139,21 +130,20 @@ export function Editor(props) {
         setOpenImageEditor(false);
     }
 
-
     function handleSave() {
         if (props.editId === undefined) {
-            createFrontBlocksApi({params : blocks})
+            createFrontBlocksApi({name: blockName, params: blocks})
                 .then((result) => {
                     alert('Сохранено');
                     if (result.success) {
                         history.push('/front-edit/edit/' + result.data.id);
                         //  setBlocks(result.data);
                     }
-                }).catch((error)=>{
+                }).catch((error) => {
 
             });
         } else {
-            updateFrontBlocksApi(props.editId, {params : blocks})
+            updateFrontBlocksApi(props.editId, {name: blockName, params: blocks})
                 .then(
                     (result) => {
                         if (result.success) {
@@ -164,17 +154,9 @@ export function Editor(props) {
         }
     }
 
-
-    function changeText() {
-
-    }
-
-
-
-
-    const renderBlockItem = (item) => {
+    const renderBlockItem = (item, ExtraBlockBtns) => {
         const bar = <Bar className='bar bar_slide'>
-            {props.ExtraBlockBtns}
+            <ExtraBlockBtns/>
             <BarBtn onClick={openImageEditor.bind(null, item)}>
                 <FontAwesomeIcon icon={faImage}/>
             </BarBtn>
@@ -184,7 +166,7 @@ export function Editor(props) {
         </Bar>;
         const text = <ReactQuill theme="bubble"
                                  value={item.text}
-                                 onChange={changeText}
+                                 onChange={(content) => changeBlock(item.id, {text: content})}
                                  modules={{
                                      toolbar: [
                                          [{'size': ['small', false, 'large', 'huge']}],
@@ -197,35 +179,41 @@ export function Editor(props) {
         return <BlockItem text={text} bar={bar} background={item.backgroundCropped}/>
     }
 
-
     return (
-        <div className="editor">
-            <h1 className='editor__title'>{props.title}</h1>
-            <input
-                className='input-file'
-                type="file"
-                onChange={uploadFile}
-                ref={inputFileRef}
-            />
-            {props.children({
-                blocks,
-                renderBlockItem,
-                changeBlock2
-            })}
-            <Bar className='bar bar_main'>
-                <BarBtn name='save'>
-                    <FontAwesomeIcon icon={faSave} onClick={handleSave}/>
-                </BarBtn>
-                <BarBtn name='add' onClick={addBlock}>
-                    <FontAwesomeIcon icon={faPlus}/>
-                </BarBtn>
-            </Bar>
-            {
-                imageEditorIsOpen &&
-                <ImageEditor closeImageEditor={closeImageEditor} changeBlock={changeBlock} block={currentBlock}
-                             cropperRef={cropperRef}/>
-            }
-        </div>
+        <Page title={props.title}>
+            <div className="editor">
+                <input
+                    className='input-file'
+                    type="file"
+                    onChange={uploadFile}
+                    ref={inputFileRef}
+                />
+                {props.children({
+                    blocks,
+                    renderBlockItem,
+                    changeBlock,
+                    setBlocks
+                })}
+                <Bar className='bar bar_main'>
+                    <BarSide value='left'>
+                        <NameField blockName={blockName} setBlockName={setBlockName}/>
+                    </BarSide>
+                    <BarSide value='right'>
+                        <BarBtn name='save'>
+                            <FontAwesomeIcon icon={faSave} onClick={handleSave}/>
+                        </BarBtn>
+                        <BarBtn name='add' onClick={addBlock}>
+                            <FontAwesomeIcon icon={faPlus}/>
+                        </BarBtn>
+                    </BarSide>
+                </Bar>
+                {
+                    imageEditorIsOpen &&
+                    <ImageEditor closeImageEditor={closeImageEditor} changeBlock={changeBlock} block={currentBlock}
+                                 cropperRef={cropperRef}/>
+                }
+            </div>
+        </Page>
     );
 }
 
@@ -236,6 +224,17 @@ export function Bar(props) {
             {props.children}
         </div>
     )
+}
+
+function BarSide({value, children}) {
+    return <div className={`bar__side bar__side_${value}`}>{children}</div>;
+}
+
+function NameField({blockName, setBlockName}) {
+    return <div className='bar__name-field'>
+        <input className='bar__input' type='text' value={blockName} onChange={(e) => setBlockName(e.target.value)}
+               placeholder='Название...'/>
+    </div>
 }
 
 
@@ -250,14 +249,12 @@ function ImageEditor(props) {
 
     const aspectRatio = props.block.aspectRatio || 1920 / 360;
 
-
     function onCrop() {
         const imageElement = props.cropperRef?.current;
         const cropper = imageElement?.cropper;
-        props.changeBlock(props.block.id, cropper.getCroppedCanvas().toDataURL('image/jpeg'));
+        props.changeBlock(props.block.id, {backgroundCropped: cropper.getCroppedCanvas().toDataURL('image/jpeg')});
         //console.log(cropper.getCroppedCanvas().toDataURL('image/jpeg'));
     }
-
 
     //https://raw.githubusercontent.com/roadmanfong/react-cropper/master/example/img/child.jpg
 
@@ -270,6 +267,7 @@ function ImageEditor(props) {
             </div>
             <div className="image-editor__body">
                 <Cropper
+                    style={{'maxHeight': '300px'}}
                     src={props.block.background}
                     // Cropper.js options
                     initialAspectRatio={aspectRatio}
@@ -281,7 +279,6 @@ function ImageEditor(props) {
                     minCropBoxWidth={20}
                     minContainerWidth={300}
                     minContainerHeight={300}
-                    responsive={true}
                     ref={props.cropperRef}
                     onInitialized={(instance) => {
                         console.log(instance);

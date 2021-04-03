@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useState} from "react";
 // Import Swiper React components
 
 import {SortableContainer, SortableElement} from 'react-sortable-hoc';
@@ -7,22 +7,25 @@ import {getFrontBlocksApi, updateFrontBlocksApi} from "./api/frontAPI";
 import {BarBtn, Bar} from "./Editor";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faPencilAlt, faPowerOff} from "@fortawesome/free-solid-svg-icons";
-import {BrowserRouter as Router, Link, Route, Switch} from "react-router-dom";
-import SliderEditor from "./SliderEditor";
-import GridEditor from "./GridEditor";
-import Home from "./Home";
+import {Link} from "react-router-dom";
+import {Page} from "./Page";
+import {trackPromise} from "react-promise-tracker";
+
 
 export default function HomeEdit() {
 
     const [blocks, setBlocks] = useState([]);
 
     useEffect(() => {
-        getFrontBlocksApi()
-            .then(result => {
-                if (result.success) {
-                    setBlocks(result.data);
-                }
-            });
+        trackPromise(
+            getFrontBlocksApi()
+                .then(result => {
+                    if (result.success) {
+                        setBlocks(result.data);
+                    }
+                })
+        );
+
     }, []);
 
     function changeBlock(block_id, newParams) {
@@ -36,7 +39,7 @@ export default function HomeEdit() {
     }
 
     function handleSave() {
-        updateFrontBlocksApi('front', {blocks : blocks})
+        updateFrontBlocksApi('front', {blocks: blocks})
             .then(result => {
                 if (result.success) {
                     alert('Сохранено');
@@ -48,23 +51,22 @@ export default function HomeEdit() {
     }
 
 
-
-
     return (
-        <div className='home-page-editor'>
-            <h1>Редактор главной страницы</h1>
-            <div className='home-page-editor__add-block'>
-                <Link to="/front-edit/new">Добавить новый блок</Link>
+        <Page title='Редактор главной страницы'>
+            <div className='home-page-editor'>
+                <div className='home-page-editor__add-block'>
+                    <Link to="/front-edit/new">Добавить новый блок</Link>
+                </div>
+                <div className='home-page-editor__list-wrap'>
+                    <ListItems
+                        blocks={blocks} setBlocks={setBlocks} changeBlock={changeBlock}
+                    />
+                </div>
+                <div className="home-page-editor__save-btn-wrap">
+                    <div className='home-page-editor__save-btn' onClick={handleSave}>Сохранить</div>
+                </div>
             </div>
-            <div className='home-page-editor__list-wrap'>
-                <ListItems
-                    blocks={blocks} setBlocks={setBlocks} changeBlock={changeBlock}
-                />
-            </div>
-            <div className="home-page-editor__save-btn-wrap">
-                <div className='home-page-editor__save-btn' onClick={handleSave}>Сохранить</div>
-            </div>
-        </div>
+        </Page>
     )
 }
 
@@ -81,7 +83,7 @@ const SortableItem = SortableElement(({item, btns, changeBlock}) => {
                     <FontAwesomeIcon icon={faPencilAlt}/>
                 </Link>
             </BarBtn>
-            <BarBtn onClick={changeBlock.bind(null, item.id, {'disabled' : !item.disabled})}>
+            <BarBtn onClick={changeBlock.bind(null, item.id, {'disabled': !item.disabled})}>
                 <FontAwesomeIcon icon={faPowerOff}/>
             </BarBtn>
         </Bar>
@@ -108,15 +110,13 @@ const SortableList = SortableContainer(({items, changeBlock}) => {
 
 function ListItems(props) {
 
-//const [items, setItems] = useState([{'title' : 'Слайдер'}, {'title': 'Розыгрыш'}]);
 
     function onSortEnd({oldIndex, newIndex}) {
-        console.log(oldIndex);
-        console.log(newIndex);
         props.setBlocks(arrayMove([...props.blocks], oldIndex, newIndex));
     }
 
-    return <SortableList distance={1} items={props.blocks} onSortEnd={onSortEnd} lockAxis={'y'} lockToContainerEdges={true} changeBlock={props.changeBlock} />;
+    return <SortableList distance={1} items={props.blocks} onSortEnd={onSortEnd} lockAxis={'y'}
+                         lockToContainerEdges={true} changeBlock={props.changeBlock}/>;
 }
 
 
