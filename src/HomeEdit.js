@@ -4,11 +4,11 @@ import {useEffect, useState} from "react";
 import {SortableContainer, SortableElement} from 'react-sortable-hoc';
 import arrayMove from 'array-move';
 import {getFrontBlocksApi, updateFrontBlocksApi} from "./api/frontAPI";
-import {BarBtn, Bar} from "./Editor";
+import {BarBtn, Bar} from "./common/Editor";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faPencilAlt, faPowerOff} from "@fortawesome/free-solid-svg-icons";
 import {Link} from "react-router-dom";
-import {Page} from "./Page";
+import {Page} from "./common/Page";
 import {trackPromise} from "react-promise-tracker";
 
 
@@ -46,6 +46,8 @@ export default function HomeEdit() {
                 }
             })
             .catch(error => {
+                alert('Произошла ошибка');
+                console.log(error);
 
             });
     }

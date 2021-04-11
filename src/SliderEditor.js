@@ -1,9 +1,9 @@
-import {Editor, BarBtn} from './Editor';
+import {Editor, BarBtn} from './common/Editor';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faArrowDown, faArrowUp} from "@fortawesome/free-solid-svg-icons";
 import arrayMove from 'array-move';
 
-export default function SliderEditor(props) {
+export default function SliderEditor() {
 
     const defaultBlockItem = {
         id: 1,

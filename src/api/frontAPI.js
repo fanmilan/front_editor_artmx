@@ -1,11 +1,7 @@
 //import {GET} from "./ajax";
 import axios from "axios";
 
-const url = 'http://localhost:8000/api/front_editor/';
-const headers = {
-    'Content-Type': 'application/json'
-}
-
+const url = 'https://pishchulin.site/api/front_editor';
 
 export const getFrontBlocksApi = () => {
     return axios.get(url)
@@ -19,7 +15,7 @@ export const getFrontBlocksApi = () => {
 * */
 
 export const getBlockApi = (id) => {
-    return axios.get(url+id)
+    return axios.get(url+'/'+id)
                 .then(res => res.data);
 }
 
@@ -35,13 +31,7 @@ export const createFrontBlocksApi = (data) => {
 * */
 
 export const updateFrontBlocksApi = (id, data) => {
-    return axios.put(url+id, data)
+    return axios.put(url+'/'+id, data)
                 .then(res => res.data);
 }
 
-
-
-function errorHandle(error) {
-    alert('Произошла ошибка');
-    console.log(error);
-}

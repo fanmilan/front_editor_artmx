@@ -1,4 +1,4 @@
-import './scss/Page.scss';
+import '../scss/Page.scss';
 import {Loader} from './Loader';
 import {usePromiseTracker} from "react-promise-tracker";
 

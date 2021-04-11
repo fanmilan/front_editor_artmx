@@ -1,13 +1,13 @@
 import {useEffect, useRef, useState} from "react";
-import './scss/Editor.scss';
+import '../scss/Editor.scss';
 
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faTimes, faImage, faPlus, faSave, faTrashAlt} from '@fortawesome/free-solid-svg-icons'
 import Cropper from "react-cropper";
 import ReactQuill from "react-quill";
 import {useHistory} from "react-router-dom";
-import {getBlockApi, createFrontBlocksApi, updateFrontBlocksApi} from './api/frontAPI';
-import {BlockItem} from "./BlockItem";
+import {getBlockApi, createFrontBlocksApi, updateFrontBlocksApi} from '../api/frontAPI';
+import {BlockItem} from "../BlockItem";
 import {Page} from "./Page";
 import {trackPromise} from "react-promise-tracker";
 
@@ -18,30 +18,31 @@ export function Editor(props) {
     const [blocks, setBlocks] = useState([]);
     const [blockName, setBlockName] = useState('');
 
+    const editId = props.editId;
+    const defaultBlockItem = props.defaultBlockItem;
+
     useEffect(() => {
-        switch (props.editId) {
+        switch (editId) {
             case undefined:
-                setBlocks([props.defaultBlockItem]);
-                // addBlock();
+                setBlocks([defaultBlockItem]);
+                setBlockName('');
                 break;
             default:
                 trackPromise(
-                    getBlockApi(props.editId)
+                    getBlockApi(editId)
                         .then(result => {
-                            console.log(result);
                             if (result.success) {
                                 const data = result.data;
                                 setBlockName(data.name);
                                 setBlocks(data.items);
                             }
                         }).catch(error => {
-                        console.log(error);
+                            console.log(error);
                     }));
                 break;
 
         }
-        //setBlocks(defaultBlocks);
-    }, [props.editId]);
+    }, [editId]);
 
 
     const [currentBlock, setCurrentBlock] = useState(false);
@@ -140,15 +141,15 @@ export function Editor(props) {
                         //  setBlocks(result.data);
                     }
                 }).catch((error) => {
-
-            });
+                    alert('Произошла ошибка');
+                    console.log('error');
+             });
         } else {
             updateFrontBlocksApi(props.editId, {name: blockName, params: blocks})
                 .then(
                     (result) => {
                         if (result.success) {
                             alert('Сохранено');
-                            //  setBlocks(result.data);
                         }
                     });
         }

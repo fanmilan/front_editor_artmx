@@ -1,5 +1,5 @@
-import {Editor, BarBtn} from './Editor';
-import {useState, useEffect, createRef, useRef} from "react";
+import {Editor, BarBtn} from './common/Editor';
+import {useEffect, createRef, useRef} from "react";
 import 'gridstack/dist/gridstack.css';
 import 'gridstack/dist/gridstack-extra.css';
 import {GridStack} from 'gridstack';
@@ -10,14 +10,16 @@ import {useParams} from "react-router-dom";
 import {GridItems} from "./GridItems";
 
 
-export default function GridEditor(props) {
+export default function GridEditor() {
 
 
     const defaultBlockItem = {
         id: 1,
         grid: {
             w : 1,
-            h : 1
+            h : 1,
+            x : null,
+            y : null
         },
         background : false,
         backgroundCropped :  false,
@@ -25,13 +27,7 @@ export default function GridEditor(props) {
         aspectRatio : 1
     }
 
-    let {editId} = (useParams());
-    const [gridId, setGridId] = useState(false);
-    useEffect(() => {
-        (editId) ? setGridId(editId) : setGridId(false);
-    },[editId]);
-
-
+    let {editId} = useParams();
 
     return (
         <Editor title='Создания блока типа Сетка' editId={editId} defaultBlockItem={defaultBlockItem}>{
@@ -45,7 +41,7 @@ export default function GridEditor(props) {
     )
 }
 
-function GridStackBlock(props) {
+function GridStackBlock({blocks, changeBlock, renderBlockItem}) {
 
     const gridRef = useRef();
     const refs = useRef({});
@@ -56,8 +52,8 @@ function GridStackBlock(props) {
         </BarBtn>
     </>;
 
-    if (Object.keys(refs.current).length !== props.blocks.length) {
-        props.blocks.forEach(({id}) => {
+    if (Object.keys(refs.current).length !== blocks.length) {
+        blocks.forEach(({id}) => {
             refs.current[id] = refs.current[id] || createRef()
         })
     }
@@ -75,52 +71,29 @@ function GridStackBlock(props) {
             });
 
         const grid = gridRef.current;
-        grid.on('resizestop', function(e, el) {
+        grid.on('resizestop dragstop', function(e, el) {
             setTimeout(function(){
                 let GridStackNode = el.gridstackNode;
                 let {w, h, x, y} = GridStackNode;
-                props.changeBlock(el.dataset.id, {aspectRatio : GridStackNode.w / GridStackNode.h, grid : {w, h, x, y}});
+                changeBlock(el.dataset.id, {aspectRatio : GridStackNode.w / GridStackNode.h, grid : {w, h, x, y}});
             }, 0);
         });
         grid.batchUpdate();
         grid.removeAll(true);
-        props.blocks.forEach(({id}) => {
+        blocks.forEach(({id}) => {
             grid.makeWidget(refs.current[id].current)
         });
 
         grid.commit();
 
 
-
-
-
         return () => {
             console.log('end');
         }
 
-    }, [props.blocks]);
-/*
-*
-*  {
-                        gs-x={item.grid.x}
-                        } gs-y={item.grid.y}*/
+    }, [blocks]);
 
     return (
-        <GridItems blocks={props.blocks} renderBlockItem={(item) => props.renderBlockItem(item, ExtraBlockBtns)} refs={refs} />
-
-        /*
-        <div className={`grid-stack grid-stack-3`}>
-            {props.blocks.map((item, i) => {
-                return (
-                    <div ref={refs.current[item.id]}
-                         gs-w={item.grid.w} gs-h={item.grid.h}
-                         data-id={item.id} key={item.id} className={'grid-stack-item'}>
-                        <div className="grid-stack-item-content">
-                            {props.renderBlockItem(item, ExtraBlockBtns)}
-                        </div>
-                    </div>
-                )
-            })}
-        </div>*/
+        <GridItems blocks={blocks} renderBlockItem={(item) => renderBlockItem(item, ExtraBlockBtns)} refs={refs} />
     );
 }

@@ -7,7 +7,7 @@ import 'swiper/swiper.scss';
 import {trackPromise} from 'react-promise-tracker';
 
 
-import {Page} from './Page';
+import {Page} from './common/Page';
 import {BlockItem} from './BlockItem';
 import {GridItems} from './GridItems';
 import {getBlockApi} from "./api/frontAPI";
@@ -31,7 +31,8 @@ export default function Home() {
                     }
                 })
                 .catch(error => {
-
+                    alert('Произошла ошибка');
+                    console.log(error);
                 }));
     }, []);
 

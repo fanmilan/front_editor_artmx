@@ -1,4 +1,4 @@
-import './App.scss';
+import './scss/App.scss';
 import Home from'./Home';
 import HomeEdit from'./HomeEdit';
 import GridEditor from'./GridEditor';
@@ -30,15 +30,6 @@ function App() {
                     <li className='menu__item'>
                         <Link className='menu__link' to="/front-edit">Редактор главной</Link>
                     </li>
-                    <li className='menu__item'>
-                        <Link className='menu__link' to="/front-edit/edit/1">Редактор слайдера</Link>
-                    </li>
-                    <li className='menu__item'>
-                        <Link className='menu__link' to="/front-edit/edit/2">Редактор блока</Link>
-                    </li>
-                    <li className='menu__item'>
-                        <Link className='menu__link' to="/front-edit/new">Создание блока</Link>
-                    </li>
                 </ul>
                 <Switch>
                     <Route path="/front-edit/edit/1">
@@ -47,7 +38,7 @@ function App() {
                     <Route path={['/front-edit/edit/:editId', '/front-edit/new']}>
                         <GridEditor />
                     </Route>
-                    <Route path="/front-edit">
+                    <Route path="/front-edit/">
                         <HomeEdit />
                     </Route>
                     <Route path="/">
